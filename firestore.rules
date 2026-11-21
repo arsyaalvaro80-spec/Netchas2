@@ -1,0 +1,274 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Reusable hardened primitive helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidYearMonth(ym) {
+      return ym is string && ym.size() == 7 && ym.matches('^[0-9]{4}-(0[1-9]|1[0-2])$');
+    }
+
+    function isValidWalletType(w) {
+      return w is string && w.size() <= 20 && (w == 'CASH' || w == 'BANK_TRANSFER');
+    }
+
+    function isValidExpenseCategory(cat) {
+      return cat is string && cat.size() <= 30 && (
+        cat == 'BANDWIDTH' ||
+        cat == 'ELECTRICITY' ||
+        cat == 'MAINTENANCE' ||
+        cat == 'EQUIPMENT' ||
+        cat == 'SALARY' ||
+        cat == 'OPERATIONAL' ||
+        cat == 'OTHER'
+      );
+    }
+
+    function isValidTimestamp(ts) {
+      return ts is timestamp && ts <= request.time;
+    }
+
+    // 3. Entity Validation Blueprints (Anti-Update-Gap)
+    function isValidBusinessSettings(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'businessName', 'businessPhone', 'businessAddress',
+          'bankAccountInfo', 'monthlyExpenseBudget', 'reminderDaysBefore',
+          'remindersEnabled', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId', 'businessName', 'businessPhone', 'businessAddress',
+          'bankAccountInfo', 'monthlyExpenseBudget', 'reminderDaysBefore',
+          'remindersEnabled', 'createdAt', 'updatedAt'
+        ]) &&
+        data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+        data.businessName is string && data.businessName.size() >= 1 && data.businessName.size() <= 80 &&
+        data.businessPhone is string && data.businessPhone.size() <= 30 &&
+        data.businessAddress is string && data.businessAddress.size() <= 180 &&
+        data.bankAccountInfo is string && data.bankAccountInfo.size() <= 180 &&
+        data.monthlyExpenseBudget is int && data.monthlyExpenseBudget >= 0 && data.monthlyExpenseBudget <= 10000000000 &&
+        data.reminderDaysBefore is int && data.reminderDaysBefore >= 0 && data.reminderDaysBefore <= 15 &&
+        data.remindersEnabled is bool &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidCustomer(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'name', 'phone', 'email', 'address',
+          'packageName', 'monthlyFee', 'dueDay', 'active',
+          'notes', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId', 'name', 'phone', 'email', 'address',
+          'packageName', 'monthlyFee', 'dueDay', 'active',
+          'notes', 'createdAt', 'updatedAt'
+        ]) &&
+        data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        data.phone is string && data.phone.size() <= 30 &&
+        data.email is string && data.email.size() <= 120 &&
+        data.address is string && data.address.size() <= 200 &&
+        data.packageName is string && data.packageName.size() >= 1 && data.packageName.size() <= 60 &&
+        data.monthlyFee is int && data.monthlyFee >= 1 && data.monthlyFee <= 100000000 &&
+        data.dueDay is int && data.dueDay >= 1 && data.dueDay <= 28 &&
+        data.active is bool &&
+        data.notes is string && data.notes.size() <= 300 &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidPayment(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'customerId', 'customerName', 'packageName',
+          'yearMonth', 'amount', 'paymentMethod', 'bankReference',
+          'receiptNumber', 'paidDateMillis', 'notes', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId', 'customerId', 'customerName', 'packageName',
+          'yearMonth', 'amount', 'paymentMethod', 'bankReference',
+          'receiptNumber', 'paidDateMillis', 'notes', 'createdAt', 'updatedAt'
+        ]) &&
+        data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+        isValidId(data.customerId) &&
+        data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 100 &&
+        data.packageName is string && data.packageName.size() >= 1 && data.packageName.size() <= 60 &&
+        isValidYearMonth(data.yearMonth) &&
+        data.amount is int && data.amount >= 1 && data.amount <= 100000000 &&
+        isValidWalletType(data.paymentMethod) &&
+        data.bankReference is string && data.bankReference.size() <= 120 &&
+        data.receiptNumber is string && data.receiptNumber.size() >= 1 && data.receiptNumber.size() <= 50 &&
+        data.paidDateMillis is int && data.paidDateMillis >= 0 &&
+        data.notes is string && data.notes.size() <= 300 &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidExpense(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'yearMonth', 'title', 'category',
+          'amount', 'walletType', 'expenseDateMillis', 'notes',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId', 'yearMonth', 'title', 'category',
+          'amount', 'walletType', 'expenseDateMillis', 'notes',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+        isValidYearMonth(data.yearMonth) &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 120 &&
+        isValidExpenseCategory(data.category) &&
+        data.amount is int && data.amount >= 1 && data.amount <= 100000000 &&
+        isValidWalletType(data.walletType) &&
+        data.expenseDateMillis is int && data.expenseDateMillis >= 0 &&
+        data.notes is string && data.notes.size() <= 300 &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    function isValidWalletTransfer(data, userId) {
+      return data.keys().hasAll([
+          'userId', 'yearMonth', 'fromWallet', 'toWallet',
+          'amount', 'transferDateMillis', 'notes',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'userId', 'yearMonth', 'fromWallet', 'toWallet',
+          'amount', 'transferDateMillis', 'notes',
+          'createdAt', 'updatedAt'
+        ]) &&
+        data.userId is string && data.userId == userId && data.userId.size() <= 128 &&
+        isValidYearMonth(data.yearMonth) &&
+        isValidWalletType(data.fromWallet) &&
+        isValidWalletType(data.toWallet) &&
+        data.fromWallet != data.toWallet &&
+        data.amount is int && data.amount >= 1 && data.amount <= 100000000 &&
+        data.transferDateMillis is int && data.transferDateMillis >= 0 &&
+        data.notes is string && data.notes.size() <= 300 &&
+        isValidTimestamp(data.createdAt) &&
+        isValidTimestamp(data.updatedAt);
+    }
+
+    // 4. User-scoped collections
+    match /users/{userId} {
+      match /settings/{settingId} {
+        allow get: if isOwner(userId) && isValidId(settingId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(settingId) &&
+          isValidBusinessSettings(incoming(), userId);
+        allow update: if isOwner(userId) &&
+          isValidId(settingId) &&
+          isValidBusinessSettings(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'businessName', 'businessPhone', 'businessAddress',
+            'bankAccountInfo', 'monthlyExpenseBudget', 'reminderDaysBefore',
+            'remindersEnabled', 'updatedAt'
+          ]);
+        allow delete: if isOwner(userId) && isValidId(settingId);
+      }
+
+      match /customers/{customerId} {
+        allow get: if isOwner(userId) && isValidId(customerId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(customerId) &&
+          isValidCustomer(incoming(), userId);
+        allow update: if isOwner(userId) &&
+          isValidId(customerId) &&
+          isValidCustomer(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'name', 'phone', 'email', 'address',
+            'packageName', 'monthlyFee', 'dueDay', 'active',
+            'notes', 'updatedAt'
+          ]);
+        allow delete: if isOwner(userId) && isValidId(customerId);
+      }
+
+      match /payments/{paymentId} {
+        allow get: if isOwner(userId) && isValidId(paymentId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(paymentId) &&
+          isValidPayment(incoming(), userId) &&
+          exists(/databases/$(database)/documents/users/$(userId)/customers/$(incoming().customerId));
+        allow update: if isOwner(userId) &&
+          isValidId(paymentId) &&
+          isValidPayment(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().customerId == existing().customerId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'customerName', 'packageName', 'yearMonth', 'amount',
+            'paymentMethod', 'bankReference', 'receiptNumber',
+            'paidDateMillis', 'notes', 'updatedAt'
+          ]);
+        allow delete: if isOwner(userId) && isValidId(paymentId);
+      }
+
+      match /expenses/{expenseId} {
+        allow get: if isOwner(userId) && isValidId(expenseId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(expenseId) &&
+          isValidExpense(incoming(), userId);
+        allow update: if isOwner(userId) &&
+          isValidId(expenseId) &&
+          isValidExpense(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'yearMonth', 'title', 'category', 'amount',
+            'walletType', 'expenseDateMillis', 'notes', 'updatedAt'
+          ]);
+        allow delete: if isOwner(userId) && isValidId(expenseId);
+      }
+
+      match /wallet_transfers/{transferId} {
+        allow get: if isOwner(userId) && isValidId(transferId);
+        allow list: if isOwner(userId);
+        allow create: if isOwner(userId) &&
+          isValidId(transferId) &&
+          isValidWalletTransfer(incoming(), userId);
+        allow update: if isOwner(userId) &&
+          isValidId(transferId) &&
+          isValidWalletTransfer(incoming(), userId) &&
+          incoming().userId == existing().userId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'yearMonth', 'fromWallet', 'toWallet', 'amount',
+            'transferDateMillis', 'notes', 'updatedAt'
+          ]);
+        allow delete: if isOwner(userId) && isValidId(transferId);
+      }
+    }
+  }
+}

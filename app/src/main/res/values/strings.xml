@@ -1,0 +1,54 @@
+<resources>
+    <string name="app_name">NetKas</string>
+    <string name="app_tagline">Pembukuan &amp; Tagihan Wi-Fi Modern</string>
+    <string name="auth_title">Kelola Tagihan Wi-Fi Lebih Rapi &amp; Akurat</string>
+    <string name="auth_subtitle">Pantau pembayaran bulanan, pisahkan dompet tunai &amp; transfer bank, cetak kuitansi, dan analisis laba bersih dalam satu aplikasi.</string>
+    <string name="auth_sign_in_google">Masuk dengan Google</string>
+    <string name="auth_signing_in">Menghubungkan akun...</string>
+    <string name="auth_security_note">Data pembukuan Anda tersimpan aman dan tersinkronisasi otomatis ke cloud pribadi Anda.</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Ringkasan</string>
+    <string name="nav_billing">Tagihan</string>
+    <string name="nav_expenses">Pengeluaran</string>
+    <string name="nav_reports">Laporan</string>
+
+    <!-- Dashboard -->
+    <string name="net_profit_label">Keuntungan Bersih</string>
+    <string name="total_income_label">Total Pemasukan</string>
+    <string name="total_expense_label">Total Pengeluaran</string>
+    <string name="unpaid_total_label">Belum Terbayar</string>
+    <string name="cash_wallet_label">Dompet Tunai</string>
+    <string name="bank_wallet_label">Transfer Bank</string>
+    <string name="historical_mode_badge">Mode Riwayat • Bisa Diedit</string>
+    <string name="profit_margin_label">Margin Laba</string>
+    <string name="due_reminder_title">Pengingat Jatuh Tempo</string>
+    <string name="send_reminder_notif">Kirim Notifikasi</string>
+    <string name="recent_transactions_title">Pembukuan Harian</string>
+
+    <!-- Actions -->
+    <string name="action_add_customer">Tambah Pelanggan</string>
+    <string name="action_add_expense">Catat Pengeluaran</string>
+    <string name="action_pay_now">Bayar</string>
+    <string name="action_receipt">Kuitansi</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Hapus</string>
+    <string name="action_save">Simpan</string>
+    <string name="action_cancel">Batal</string>
+    <string name="action_print_receipt">Cetak Printer</string>
+    <string name="action_send_whatsapp">Kirim WhatsApp</string>
+    <string name="action_send_email">Kirim Email</string>
+    <string name="action_export_pdf">Ekspor PDF</string>
+    <string name="action_export_excel">Ekspor Excel (.xlsx)</string>
+    <string name="action_sign_out">Keluar Akun</string>
+
+    <!-- Statuses -->
+    <string name="status_paid">Lunas</string>
+    <string name="status_unpaid">Belum Bayar</string>
+    <string name="status_due_soon">Segera Jatuh Tempo</string>
+    <string name="status_overdue">Jatuh Tempo</string>
+
+    <!-- Notifications -->
+    <string name="notif_channel_name">Pengingat Tagihan Wi-Fi</string>
+    <string name="notif_channel_desc">Notifikasi jatuh tempo pembayaran pelanggan dan monitoring arus kas bulanan</string>
+</resources>

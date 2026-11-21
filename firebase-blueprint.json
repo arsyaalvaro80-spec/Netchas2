@@ -1,0 +1,374 @@
+{
+  "entities": {
+    "BusinessSettings": {
+      "title": "BusinessSettings",
+      "description": "User's Wi-Fi business profile, monthly expense budget, and due-date notification preferences.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "businessName": {
+          "type": "string",
+          "description": "Name of the Wi-Fi ISP / RT-RW Net business printed on receipts and reports."
+        },
+        "businessPhone": {
+          "type": "string",
+          "description": "Business WhatsApp or contact phone number."
+        },
+        "businessAddress": {
+          "type": "string",
+          "description": "Business address displayed on receipts and PDF reports."
+        },
+        "bankAccountInfo": {
+          "type": "string",
+          "description": "Bank transfer account details shown on reminders and receipts."
+        },
+        "monthlyExpenseBudget": {
+          "type": "integer",
+          "description": "Monthly operational expense budget target in IDR."
+        },
+        "reminderDaysBefore": {
+          "type": "integer",
+          "description": "Number of days before dueDay to alert about upcoming customer payments."
+        },
+        "remindersEnabled": {
+          "type": "boolean",
+          "description": "Whether payment due-date notifications are enabled."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "businessName",
+        "businessPhone",
+        "businessAddress",
+        "bankAccountInfo",
+        "monthlyExpenseBudget",
+        "reminderDaysBefore",
+        "remindersEnabled",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "A Wi-Fi subscriber with package plan, monthly billing fee, and due day.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Customer full name."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Customer WhatsApp / phone number."
+        },
+        "email": {
+          "type": "string",
+          "description": "Customer email address for receipt delivery."
+        },
+        "address": {
+          "type": "string",
+          "description": "Installation address or zone."
+        },
+        "packageName": {
+          "type": "string",
+          "description": "Subscribed Wi-Fi package name."
+        },
+        "monthlyFee": {
+          "type": "integer",
+          "description": "Monthly subscription fee in IDR."
+        },
+        "dueDay": {
+          "type": "integer",
+          "description": "Day of month (1-28) when payment is due."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the customer subscription is currently active."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional customer notes such as router MAC or PPPoE username."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "phone",
+        "email",
+        "address",
+        "packageName",
+        "monthlyFee",
+        "dueDay",
+        "active",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A monthly Wi-Fi payment record separated into CASH or BANK_TRANSFER wallet.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "Reference ID of the Customer document."
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Denormalized customer name snapshot for receipts."
+        },
+        "packageName": {
+          "type": "string",
+          "description": "Denormalized Wi-Fi package snapshot for receipts."
+        },
+        "yearMonth": {
+          "type": "string",
+          "description": "Billing period formatted as YYYY-MM."
+        },
+        "amount": {
+          "type": "integer",
+          "description": "Paid amount in IDR."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["CASH", "BANK_TRANSFER"],
+          "description": "Wallet channel separating cash drawer from bank transfers."
+        },
+        "bankReference": {
+          "type": "string",
+          "description": "Bank name or transfer reference number."
+        },
+        "receiptNumber": {
+          "type": "string",
+          "description": "Unique receipt code printed on kuitansi."
+        },
+        "paidDateMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds of the payment date."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional payment notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "customerId",
+        "customerName",
+        "packageName",
+        "yearMonth",
+        "amount",
+        "paymentMethod",
+        "bankReference",
+        "receiptNumber",
+        "paidDateMillis",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "A monthly operational expense deducted from CASH or BANK_TRANSFER wallet.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "yearMonth": {
+          "type": "string",
+          "description": "Accounting month formatted as YYYY-MM."
+        },
+        "title": {
+          "type": "string",
+          "description": "Expense description."
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "BANDWIDTH",
+            "ELECTRICITY",
+            "MAINTENANCE",
+            "EQUIPMENT",
+            "SALARY",
+            "OPERATIONAL",
+            "OTHER"
+          ],
+          "description": "Expense category for budget monitoring charts."
+        },
+        "amount": {
+          "type": "integer",
+          "description": "Expense amount in IDR."
+        },
+        "walletType": {
+          "type": "string",
+          "enum": ["CASH", "BANK_TRANSFER"],
+          "description": "Funding source wallet (Cash Wallet or Bank Transfer)."
+        },
+        "expenseDateMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds of the expense date."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional expense remarks."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "yearMonth",
+        "title",
+        "category",
+        "amount",
+        "walletType",
+        "expenseDateMillis",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "WalletTransfer": {
+      "title": "WalletTransfer",
+      "description": "Internal transfer between CASH wallet and BANK_TRANSFER wallet (e.g., cash bank deposit or cash withdrawal) without affecting net profit.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "yearMonth": {
+          "type": "string",
+          "description": "Accounting month formatted as YYYY-MM."
+        },
+        "fromWallet": {
+          "type": "string",
+          "enum": ["CASH", "BANK_TRANSFER"],
+          "description": "Source wallet."
+        },
+        "toWallet": {
+          "type": "string",
+          "enum": ["CASH", "BANK_TRANSFER"],
+          "description": "Destination wallet (must differ from fromWallet)."
+        },
+        "amount": {
+          "type": "integer",
+          "description": "Transfer amount in IDR."
+        },
+        "transferDateMillis": {
+          "type": "integer",
+          "description": "Epoch milliseconds of the transfer date."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional transfer notes."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp set via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "yearMonth",
+        "fromWallet",
+        "toWallet",
+        "amount",
+        "transferDateMillis",
+        "notes",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/settings/{settingId}": {
+      "schema": {
+        "$ref": "#/entities/BusinessSettings"
+      },
+      "description": "Per-user Wi-Fi business profile, monthly expense budget, and notification preferences."
+    },
+    "/users/{userId}/customers/{customerId}": {
+      "schema": {
+        "$ref": "#/entities/Customer"
+      },
+      "description": "Per-user Wi-Fi customer registry."
+    },
+    "/users/{userId}/payments/{paymentId}": {
+      "schema": {
+        "$ref": "#/entities/Payment"
+      },
+      "description": "Per-user monthly customer payment records split by CASH and BANK_TRANSFER."
+    },
+    "/users/{userId}/expenses/{expenseId}": {
+      "schema": {
+        "$ref": "#/entities/Expense"
+      },
+      "description": "Per-user monthly operational expenses split by category and wallet."
+    },
+    "/users/{userId}/wallet_transfers/{transferId}": {
+      "schema": {
+        "$ref": "#/entities/WalletTransfer"
+      },
+      "description": "Per-user internal transfers between cash drawer and bank account."
+    }
+  }
+}
